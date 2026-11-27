@@ -8,7 +8,7 @@
 <header><img id="banner" alt="PLOYRATSHOP banner"></header>
 <nav><a href="#home">หน้าแรก</a><a href="#shop">สินค้า</a><a href="#contact">ติดต่อ/ชำระเงิน</a><a href="#admin">เจ้าของร้าน</a></nav>
 <div class="wrap">
-<section class="hero" id="home"><h1>PLOYRATSHOP ♡</h1><p>Fashion • New & Second Hand</p><p>สวยครบ จนที่ร้านเรา</p><a href="#shop"><button>เลือกชมสินค้า</button></a></section>
+<section class="hero" id="home"><h1>PLOYRATSHOP ♡</h1><p>Fashion • New & Second Hand</p><p>สวยครบ จบที่ร้านเรา</p><a href="#shop"><button>เลือกชมสินค้า</button></a></section>
 <section id="shop" class="section"><h2>🛍️ สินค้าของร้าน</h2><div class="toolbar"><input id="search" placeholder="ค้นหาสินค้า..." oninput="renderProducts()"><select id="category" onchange="renderProducts()"><option value="ทั้งหมด">ทุกประเภท</option><option>มือ 1</option><option>มือ 2</option></select><select id="sort" onchange="renderProducts()"><option value="new">ใหม่ล่าสุด</option><option value="low">ราคาต่ำ → สูง</option><option value="high">ราคาสูง → ต่ำ</option></select></div><div id="products" class="products"></div></section>
 <section id="contact" class="section"><h2>💌 ติดต่อร้าน / วิธีชำระเงิน</h2><div id="publicContacts" class="bankbox">กำลังโหลดข้อมูลร้าน...</div><div id="links"></div></section>
 <section id="admin" class="admin section"><h2>🔐 เจ้าของร้าน</h2><div class="status" id="connection">กำลังตรวจสอบการเชื่อมต่อ...</div><div id="loginBox"><p class="muted">เข้าสู่ระบบด้วยบัญชีเจ้าของร้าน Supabase Auth (ไม่ใช้รหัสผ่านสาธารณะ)</p><input id="email" type="email" placeholder="อีเมลเจ้าของร้าน"><input id="password" type="password" placeholder="รหัสผ่าน"><button onclick="login()">เข้าสู่ระบบ</button></div>
