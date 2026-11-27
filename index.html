@@ -27,8 +27,51 @@ const bannerData=""; // If deploying, place banner image at banner.png, or repla
 $("banner").src="banner.png.png";
 function fmt(n){return Number(n||0).toLocaleString("th-TH")+" บาท"}
 function setConnection(t){$("connection").textContent=t}
-async function init(){if(!isConfigured||!window.supabase){setConnection("ยังไม่ได้ตั้งค่า Supabase: ดู SETUP_TH.txt ก่อน เว็บจะแสดงสินค้าตัวอย่าง/ว่างจนเชื่อมฐานข้อมูล");renderProducts();showPublic();return}
-sbasync function login(){
+async function init(){
+  if(!isConfigured||!window.supabase){
+    setConnection("ยังไม่ได้ตั้งค่า Supabase");
+    renderProducts();
+    showPublic();
+    return;
+  }
+
+  sb=window.supabase.createClient(
+    CONFIG.SUPABASE_URL,
+    CONFIG.SUPABASE_ANON_KEY
+  );
+
+  setConnection("เชื่อม Supabase แล้ว กำลังโหลดสินค้า");
+
+  await loadPublic();
+
+  const {data:{session}}=await sb.auth.getSession();
+
+  if(session) await openPanel();
+
+  setConnection("เชื่อมต่อฐานข้อมูลออนไลน์แล้ว");
+}
+
+async function login(){
+  if(!sb){
+    alert("โปรดตั้งค่า Supabase ตามคู่มือก่อน");
+    return;
+  }
+
+  const email=$("email").value.trim().toLowerCase();
+  const password=$("password").value;
+
+  const {data,error}=await sb.auth.signInWithPassword({
+    email,
+    password
+  });
+
+  if(error){
+    alert("เข้าสู่ระบบไม่สำเร็จ: "+error.message);
+    return;
+  }
+
+  await openPanel();
+}
   if(!sb){
     alert("โปรดตั้งค่า Supabase ตามคู่มือก่อน");
     return;
