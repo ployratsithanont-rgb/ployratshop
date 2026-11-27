@@ -28,12 +28,32 @@ $("banner").src="banner.png.png";
 function fmt(n){return Number(n||0).toLocaleString("th-TH")+" บาท"}
 function setConnection(t){$("connection").textContent=t}
 async function init(){if(!isConfigured||!window.supabase){setConnection("ยังไม่ได้ตั้งค่า Supabase: ดู SETUP_TH.txt ก่อน เว็บจะแสดงสินค้าตัวอย่าง/ว่างจนเชื่อมฐานข้อมูล");renderProducts();showPublic();return}
-sb=window.supabase.createClient(CONFIG.SUPABASE_URL,CONFIG.SUPABASE_ANON_KEY);setConnection("เชื่อม Supabase แล้ว กำลังโหลดสินค้า");await loadPublic();const{data:{session}}=await sb.auth.getSession();if(session)await openPanel();setConnection("เชื่อมต่อฐานข้อมูลออนไลน์แล้ว")}
+sbasync function login(){
+  if(!sb){
+    alert("โปรดตั้งค่า Supabase ตามคู่มือก่อน");
+    return;
+  }
+
+  const email = $("email").value.trim().toLowerCase();
+  const password = $("password").value;
+
+  let {data,error} = await sb.auth.signInWithPassword({
+    email,
+    password
+  });
+
+  if(error){
+    alert("เข้าสู่ระบบไม่สำเร็จ: "+error.message);
+    return;
+  }
+
+  await openPanel();
+}=window.supabase.createClient(CONFIG.SUPABASE_URL,CONFIG.SUPABASE_ANON_KEY);setConnection("เชื่อม Supabase แล้ว กำลังโหลดสินค้า");await loadPublic();const{data:{session}}=await sb.auth.getSession();if(session)await openPanel();setConnection("เชื่อมต่อฐานข้อมูลออนไลน์แล้ว")}
 async function loadPublic(){let [pr,st]=await Promise.all([sb.from("products").select("*").eq("active",true).order("created_at",{ascending:false}),sb.from("shop_settings").select("*").limit(1)]);if(pr.error)console.error(pr.error);products=pr.data||[];settings=st.data?.[0]||{};renderProducts();showPublic()}
 function renderProducts(){let q=$("search").value.toLowerCase(),cat=$("category").value,sort=$("sort").value;let list=products.filter(p=>(p.name||"").toLowerCase().includes(q)&&(cat==="ทั้งหมด"||p.type===cat));if(sort==="low")list.sort((a,b)=>a.price-b.price);if(sort==="high")list.sort((a,b)=>b.price-a.price);$("products").innerHTML=list.map(p=>`<article class="product"><img src="${esc(p.image_url||"")}" alt="${esc(p.name)}" onerror="this.style.display='none'"><span class="tag">${esc(p.type)}</span><h3>${esc(p.name)}</h3><p>${esc(p.size||"")}</p><p>${esc(p.description||"")}</p><div class="price">${fmt(p.price)}</div><button onclick="orderProduct('${p.id}')">สั่งซื้อ / สนใจ</button></article>`).join("")||'<div class="muted">ยังไม่มีสินค้า ♡</div>'}
 function showPublic(){let qr=settings.qr_url?`<img src="${esc(settings.qr_url)}" style="max-width:230px;width:100%" alt="QR ชำระเงิน">`:"";$("publicContacts").innerHTML=`<p><b>${esc(settings.bank||"")}</b></p><p>${esc(settings.account||"")}</p><p>${esc(settings.promptpay||"")}</p>${qr}<p>โปรดตรวจสอบยอดและชื่อบัญชีก่อนโอน และส่งหลักฐานผ่านแชต</p>`;$("links").innerHTML=[["LINE",settings.line],["Facebook",settings.facebook],["Instagram",settings.instagram]].filter(x=>x[1]).map(x=>`<p><a target="_blank" rel="noopener" href="${esc(x[1])}">${esc(x[0])}</a></p>`).join("")}
 async function orderProduct(id){let p=products.find(x=>String(x.id)===String(id));if(!p)return;let name=prompt("ชื่อผู้สั่งซื้อ"),phone=prompt("เบอร์โทร/ช่องทางติดต่อ"),qty=prompt("จำนวน", "1");if(!name||!phone||!qty||Number(qty)<1)return;let{error}=await sb.from("orders").insert({customer_name:name,contact:phone,product_id:p.id,product_name:p.name,quantity:Number(qty),unit_price:p.price,total:Number(qty)*p.price,status:"pending"});if(error){alert("บันทึกออเดอร์ไม่สำเร็จ ตรวจการเชื่อมต่อ");console.error(error);return}alert("ส่งคำสั่งซื้อแล้ว กรุณาติดต่อร้านและชำระเงินตามข้อมูลบัญชี");if(settings.line)window.open(settings.line,"_blank")}
-async function login(){if(!sb){alert("โปรดตั้งค่า Supabase ตามคู่มือก่อน");return}let{data,error}=await sb.auth.signInWithPassword({email:$("email").value,password:$("password").value});if(error){alert("เข้าสู่ระบบไม่สำเร็จ: "+error.message);return}await openPanel()}
+
 async function logout(){await sb.auth.signOut();$("panel").classList.add("hidden");$("loginBox").classList.remove("hidden")}
 async function openPanel(){$("panel").classList.remove("hidden");$("loginBox").classList.add("hidden");await loadSettingsForm();await loadManage();await loadFinance();await loadOrders()}
 async function loadSettingsForm(){let{data}=await sb.from("shop_settings").select("*").limit(1);settings=data?.[0]||{};["line","facebook","instagram","bank","account","promptpay"].forEach(k=>$(k).value=settings[k]||"")}
